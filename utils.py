@@ -162,8 +162,8 @@ def getDetailedInfo(soup):
             return data_extra
 
 def writeCSV(prefix, data, data_detailed=None):
-    output_path = prefix+'.csv'
-    output_path_verbose = prefix+'_verbose.csv'
+    output_path = './data/'+prefix+'.csv'
+    output_path_verbose = './data/'+prefix+'_verbose.csv'
     print(output_path)
     with open(output_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
@@ -174,4 +174,3 @@ def writeCSV(prefix, data, data_detailed=None):
             writer = csv.writer(csvfile)
             writer.writerow(['bango', 'title','link', 'j_actors', 'd_actors', 'category'])  # Add the header row
             writer.writerows(data_detailed)
-    
