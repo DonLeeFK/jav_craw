@@ -7,7 +7,6 @@ import logging
 #keep only the 3 most recent log including the current one
 log_files = [f for f in os.listdir('./log') if f.endswith('.log')]
 log_files.sort(key=lambda x: os.path.getmtime(os.path.join('./log', x)))
-print(log_files)
 if len(log_files) > 4:
     for file in log_files[:-4]:
         os.remove(os.path.join('./log', file))
