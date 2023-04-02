@@ -60,8 +60,11 @@ def joyusearch(DETAIL=True, MAX_PAGE=50):
             data += new_data
         
         
-    
-    writeCSV(primary_name, data, data_detailed)
+    if DETAIL:
+        writeCSV(primary_name, data, data_detailed)
+    else:
+        writeCSV(primary_name, data)
+        
     
 
 

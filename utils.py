@@ -174,3 +174,4 @@ def writeCSV(prefix, data, data_detailed=None):
             writer = csv.writer(csvfile)
             writer.writerow(['bango', 'title','link', 'j_actors', 'd_actors', 'category'])  # Add the header row
             writer.writerows(data_detailed)
+    

@@ -5,10 +5,22 @@ from wordcloud import WordCloud
 import requests
 from bs4 import BeautifulSoup
 import logging
+import os
 
 mpl.rcParams['font.family'] = 'SimHei' # set font family to SimHei to allow displaying Chinese characters in the chart
-df_raw = pd.read_csv('output_verbose.csv')
-output_path = 'アナル.csv'
+
+csv_files = [f for f in os.listdir('./data') if f.endswith('.csv') and '_verbose' in f]
+
+print("Choose a CSV file to proceed:")
+for i, file in enumerate(csv_files):
+    print(f"{i+1}. {file}")
+
+selected_file = input("Enter the number of the file you want to use: ")
+selected_file = csv_files[int(selected_file)-1]
+
+df_raw = pd.read_csv(f'./data/{selected_file}')
+#df_raw = pd.read_csv('data/水菜麗_verbose.csv')
+output_path = f'./data/{selected_file[:-4]}.csv'
 
 def findAliasName(name):#find alias name of an actor and return list of all alias names
     url = f"https://javdb.com/search?q={name}&f=actor"
@@ -131,9 +143,10 @@ def printDfWithDots(df):
 
 def main():
     df = removeDuplicate(df_raw)
-    #saveCSV(df)
-    df_filtered = filterJoyuEnhanced(df, '水菜れい')
-    print(df_filtered.loc[:, ['bango','j_actors', 'link']])
+    print(df.info())
+    print(df.tail(10))
+    plotTag(df)
+    saveCSV(df)
+    
 
-dict = findAliasName('水菜麗')
-print(dict)
+main()
