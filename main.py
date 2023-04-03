@@ -7,7 +7,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='JavDB Craw', usage='%(prog)s [options]')
     parser.add_argument('-m', '--mode', choices=['joyu', 'keyword'],default='keyword' ,help="search mode, joyu or keyword")
     parser.add_argument('-d', '--detail', action='store_true', help="whether or not if you want verbose info")
-    parser.add_argument('-p', '--pages' , help="How many pages you wanna search")
+    parser.add_argument('-p', '--pages' , help="How many pages you wanna search (a page contains roughly 40 entries)")
     args = parser.parse_args()
     
     if args.pages:

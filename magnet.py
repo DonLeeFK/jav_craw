@@ -13,7 +13,7 @@ if len(log_files) > 4:
 import time
 logging.basicConfig(filename=f'./log/magnet_{time.strftime("%Y%m%d-%H%M%S")}.log', level=logging.WARNING)
 
-def fetchMagnet0Mag(response):
+def fetchMagnet0Mag(response, num=3):
     soup = BeautifulSoup(response.content, 'html.parser')
     #link = soup.find('a')['href']
     table = soup.find('div',{'class':'container'})\
@@ -28,7 +28,7 @@ def fetchMagnet0Mag(response):
             continue
     mags = []
     #limit the number of magnet links to 3
-    links = links[:3]
+    links = links[:num]
     if links:
         for link in links:
             response = requests.get(link)
@@ -69,7 +69,16 @@ df['magnet'] = pd.Series(dtype='object')
 df['magnet'].fillna(value='', inplace=True)
 #print(df.head())
 #print(df['bango'])
-
+try:
+    num = input("Enter how many magnet link you want to extract for each bango(default is 3, press enter to skip): ")
+    if num:
+        num = int(num)
+    else:
+        pass
+except ValueError:
+    num = None
+    print("Invalid input. Revert back to default.")
+    
 from tqdm import tqdm
 
 
@@ -77,7 +86,10 @@ for bango in tqdm(df['bango']):
     url = f"https://0mag.net/search?q={bango}"
     try:
         response = requests.get(url)
-        mags_0mag = fetchMagnet0Mag(response)
+        if num:
+            mags_0mag = fetchMagnet0Mag(response, num=num)
+        else:
+            mags_0mag = fetchMagnet0Mag(response)
         df.loc[df['bango'] == bango, 'magnet'] = mags_0mag
     except requests.exceptions.ConnectionError:
         logging.warning(f"Couldn't connect to {url}")

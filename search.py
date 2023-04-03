@@ -100,7 +100,16 @@ def keywordsearch(DETAIL=True, MAX_PAGE=50):
             if new_data == 0:
                 break
             data += new_data
-        
-    writeCSV(keyword, data, data_detailed)
+    
+    if DETAIL:
+        if keyword:    
+            writeCSV(keyword, data, data_detailed)
+        else:
+            writeCSV('recommendations', data, data_detailed)
+    else:
+        if keyword:    
+            writeCSV(keyword, data)
+        else:
+            writeCSV('recommendations', data)
 
     

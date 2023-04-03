@@ -141,7 +141,7 @@ def printDfWithDots(df):
     print(df_subset)
 
 
-def main():
+def process():
     df = removeDuplicate(df_raw)
     print(df.info())
     print(df.tail(10))
@@ -149,4 +149,4 @@ def main():
     saveCSV(df)
     
 
-main()
+process()

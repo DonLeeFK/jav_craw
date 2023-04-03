@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 import csv
 from tqdm import tqdm
 import logging
+import pandas as pd
+
 
 
 def findActor(name):
@@ -86,7 +88,7 @@ def fetchPage(soup, DETAIL):
         print("That is the end!")
         return 0
 
-    for video in videos:
+    for video in tqdm(videos):
         bango = video.find('strong')
         if bango:
             bango = bango.text
@@ -110,9 +112,10 @@ def fetchPage(soup, DETAIL):
             if DETAIL:
                 data_frame_e = data_frame + data_e
                 data_detailed.append(data_frame_e)
-                print(data_frame_e)
+                #print(data_frame_e)
             else:
-                print(data_frame)
+                pass
+                #print(data_frame)
     if not DETAIL:
         return data
     else:
@@ -160,18 +163,35 @@ def getDetailedInfo(soup):
             #print(f"j: {dict['joyu']}, d: {dict['danyu']}")
             data_extra = [dict['joyu'],dict['danyu'],dict['cat']]
             return data_extra
+        
+def removeDuplicate(df_raw):
+    df = df_raw.copy()
+    df.drop_duplicates(subset='bango', inplace=True)
+    df.replace(['N/A', 'n/a'], None, inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    return df
 
 def writeCSV(prefix, data, data_detailed=None):
     output_path = './data/'+prefix+'.csv'
     output_path_verbose = './data/'+prefix+'_verbose.csv'
     print(output_path)
+    df = pd.DataFrame(data, columns=['bango', 'title', 'link'])
+    df = removeDuplicate(df)
+    df.to_csv(output_path, index=False)
+    '''
     with open(output_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['bango', 'title', 'link'])  # Add the header row
         writer.writerows(data)
+    '''
     if data_detailed:
+        df_detailed = pd.DataFrame(data_detailed, columns=['bango', 'title','link', 'j_actors', 'd_actors', 'category'])
+        df_detailed = removeDuplicate(df)
+        df.to_csv(output_path_verbose, index=False)
+        '''
         with open(output_path_verbose, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['bango', 'title','link', 'j_actors', 'd_actors', 'category'])  # Add the header row
             writer.writerows(data_detailed)
+        '''
     
