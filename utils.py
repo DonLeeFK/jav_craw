@@ -4,25 +4,26 @@ import csv
 from tqdm import tqdm
 import logging
 import pandas as pd
-
-
+from rich.progress import track
+from concurrent.futures import ThreadPoolExecutor
 
 def findActor(name):
     actor_dict = {}
     
     url = f"https://javdb.com/search?q={name}&f=actor"
+    print(f"link: {url}")
     try:
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
     except:
-        logging.warning("Couldn't find such name")
+        logging.warning(f"Couldn't find {name}")
         #print("Couldn't find alias name")
         return actor_dict
     body = soup.find('body', {'data-lang': 'zh'})
     try:
         section = body.find('section', {'class': 'section'})
     except:
-        logging.warning("Couldn't find such name")
+        logging.warning(f"Couldn't find {name}")
         return actor_dict
     container = section.find('div', {'class': 'container'})
     try:
@@ -48,6 +49,43 @@ def findActor(name):
         pass
         
     return actor_dict
+
+def findList(name):
+    name  = name.replace(" ", "%20")
+    
+    list_dict = {}
+    
+    url = f"https://javdb.com/search?q={name}&f=list"
+    print(f"link: {url}")
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+    except:
+        logging.warning(f"Couldn't find {name}")
+        #print("Couldn't find alias name")
+        return list_dict
+    body = soup.find('body', {'data-lang': 'zh'})
+    try:
+        section = body.find('section', {'class': 'section'})
+    except:
+        logging.warning(f"Couldn't find {name}")
+        return list_dict
+    container = section.find('div', {'class': 'container'})
+    try:
+        list_box = container.find_all('a', {'class': 'box'})
+        #print(list_box[19])
+        for item in list_box:
+            list_name = item.find('strong').text.strip()
+            list_len = item.find('span').text.strip()
+            list_len = list_len.replace("(", "").replace(")", "")
+            list_key = list_name+':'+list_len
+            href = "https://javdb.com"+item['href']
+            list_dict[list_key] = href
+            #print(f"{primary_name}: {href}")
+    except:
+        pass
+        
+    return list_dict
 
 
 def cleanActors(input_list):
@@ -90,6 +128,8 @@ def fetchPage(soup, DETAIL):
 
     for video in tqdm(videos):
         bango = video.find('strong')
+        if not bango:
+            continue
         if bango:
             bango = bango.text
             title = video.find('div', {'class': 'video-title'}).text
@@ -186,8 +226,8 @@ def writeCSV(prefix, data, data_detailed=None):
     '''
     if data_detailed:
         df_detailed = pd.DataFrame(data_detailed, columns=['bango', 'title','link', 'j_actors', 'd_actors', 'category'])
-        df_detailed = removeDuplicate(df)
-        df.to_csv(output_path_verbose, index=False)
+        df_detailed = removeDuplicate(df_detailed)
+        df_detailed.to_csv(output_path_verbose, index=False)
         '''
         with open(output_path_verbose, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
@@ -195,3 +235,76 @@ def writeCSV(prefix, data, data_detailed=None):
             writer.writerows(data_detailed)
         '''
     
+    
+
+
+
+def better_fetchPage(soup, DETAIL):
+    data = []
+    data_detailed = []
+    body = soup.find('body', {'data-lang': 'zh'})
+    try:
+        section = body.find('section', {'class': 'section'})
+    except:
+        print("That is the end!")
+        return 0
+    container = section.find('div', {'class': 'container'})
+    videos = container.find_all('a')
+    if len(videos) == 0:
+        print("That is the end!")
+        return 0
+    
+    
+    def extract(video):
+        nonlocal data
+        nonlocal data_detailed
+        bango = video.find('strong')
+        if not bango:
+            return
+        if bango:
+            bango = bango.text
+            title = video.find('div', {'class': 'video-title'}).text
+            title = title.split()[1:]
+            title = ' '.join(title)
+            href = "https://javdb.com"+video['href']
+            if DETAIL:
+                try:
+                    response = requests.get(href)
+                    #print(response.status_code)
+                    soup = BeautifulSoup(response.content, 'html.parser')
+                    #print(f"subpage {href} opened")
+                    data_e = getDetailedInfo(soup)#extra info
+                    
+                except:
+                    #print(f"Error: Could not fetch page: {href}, status code: {response.status_code}")
+                    return
+            data_frame = [bango, title, href]
+            data.append(data_frame)
+            if DETAIL:
+                data_frame_e = data_frame + data_e
+                data_detailed.append(data_frame_e)
+                #print(data_frame_e)
+            else:
+                pass
+                #print(data_frame)
+    """
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError as e:
+        if str(e).startswith('There is no current event loop in thread'):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        else:
+            raise
+
+    tasks = [asyncio.ensure_future(extract(video)) for video in videos]
+    loop.run_until_complete(asyncio.wait(tasks))
+    #for video in track(videos):
+        #extract(video)
+    """
+    with ThreadPoolExecutor() as executor:
+        executor.map(extract, videos)    
+    if not DETAIL:
+        return data
+    else:
+        return data, data_detailed
