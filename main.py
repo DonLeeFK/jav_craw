@@ -1,4 +1,4 @@
-from search import joyusearch, better_joyusearche
+from search import joyusearch, better_joyusearch
 from search import keywordsearch, better_keywordsearch
 from search import listsearch
 import argparse
