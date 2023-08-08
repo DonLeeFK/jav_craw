@@ -3,6 +3,8 @@ import os
 import requests
 from bs4 import BeautifulSoup
 import logging
+from rich.progress import track
+from concurrent.futures import ThreadPoolExecutor
 
 #keep only the 3 most recent log including the current one
 log_files = [f for f in os.listdir('./log') if f.endswith('.log')]
@@ -80,9 +82,10 @@ except ValueError:
     print("Invalid input. Revert back to default.")
     
 from tqdm import tqdm
+from tqdm.contrib.concurrent import thread_map
 
-
-for bango in tqdm(df['bango']):
+def Mag(bango):
+    #print(bango)
     url = f"https://0mag.net/search?q={bango}"
     try:
         response = requests.get(url)
@@ -93,8 +96,19 @@ for bango in tqdm(df['bango']):
         df.loc[df['bango'] == bango, 'magnet'] = mags_0mag
     except requests.exceptions.ConnectionError:
         logging.warning(f"Couldn't connect to {url}")
-        continue
+        return
+    
    
+'''
+with ThreadPoolExecutor() as executor:
+    with tqdm(total = len(df['bango'])) as progress:
+        for bango in list(df['bango']):
+            future = executor.submit(Mag, bango)
+            future.add_done_callback(lambda p: progress.update())
+'''
+#with ThreadPoolExecutor() as executor:
+#    tqdm(executor.map(Mag, df['bango']), total=len(df['bango']))
+thread_map(Mag, df['bango'])
 
 if '_magnet' not in selected_file:
     df.to_csv(f'./data/{selected_file[:-4]}_magnet.csv', index=False)
