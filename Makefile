@@ -19,5 +19,6 @@ analyze: install
 	$(PYTHON) data.py
 clean:
 	rm -rf $(VENV_DIR)
+	rm -rf __pycache__
 
 .PHONY: install run clean
