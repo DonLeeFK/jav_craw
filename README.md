@@ -1,5 +1,5 @@
 # JavDB Craw
-$TODO$
+This project is a crawler for javdb.com. It can search for videos based on keywords or actors, and export to a CSV file. 
 ### Installation
  Clone the repository:
    ```sh
@@ -35,3 +35,9 @@ optional arguments:
 ```
 #### Clean up
 Use `make clean` to remove the downloaded packages and dependencies.
+
+### Others
+After you have generated a CSV file, you can use `make magnet` to get magnet links for each video, or use `make analyze` to analyze the data.
+```
+
+```

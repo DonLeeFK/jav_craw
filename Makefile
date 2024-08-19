@@ -12,6 +12,11 @@ install: $(VENV_DIR)
 run: install
 	$(PYTHON) $(PYTHON_SCRIPT) $(ARGS)
 
+magnet: install
+	$(PYTHON) magnet.py
+
+analyze: install
+	$(PYTHON) data.py
 clean:
 	rm -rf $(VENV_DIR)
 
