@@ -38,6 +38,3 @@ Use `make clean` to remove the downloaded packages and dependencies.
 
 ### Others
 After you have generated a CSV file, you can use `make magnet` to get magnet links for each video, or use `make analyze` to analyze the data.
-```
-
-```
