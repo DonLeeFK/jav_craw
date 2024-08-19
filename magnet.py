@@ -18,8 +18,12 @@ logging.basicConfig(filename=f'./log/magnet_{time.strftime("%Y%m%d-%H%M%S")}.log
 def fetchMagnet0Mag(response, num=3):
     soup = BeautifulSoup(response.content, 'html.parser')
     #link = soup.find('a')['href']
-    table = soup.find('div',{'class':'container'})\
+    try:
+        table = soup.find('div',{'class':'container'})\
         .find('table').find('tbody').find_all('tr')
+    except Exception as e:
+        print(f"Can't find magnet links for {response.url}")
+        return ''
     links = []
     
     for tr in table:
@@ -35,8 +39,11 @@ def fetchMagnet0Mag(response, num=3):
         for link in links:
             response = requests.get(link)
             soup = BeautifulSoup(response.content, 'html.parser')
-            mag = soup.find('input', {'id': 'input-magnet'})['value']
-            mags.append(mag)
+            try:
+                mag = soup.find('input', {'id': 'input-magnet'})['value']
+                mags.append(mag)
+            except:
+                continue
     mags = '\n'.join(mags)
     #print(mags)
     return mags
@@ -68,7 +75,8 @@ while True:
 
 df = pd.read_csv(f'./data/{selected_file}')
 df['magnet'] = pd.Series(dtype='object')
-df['magnet'].fillna(value='', inplace=True)
+#df['magnet'].fillna(value='', inplace=True)
+df.fillna({'magnet': ''}, inplace=True)
 #print(df.head())
 #print(df['bango'])
 try:
@@ -86,9 +94,12 @@ from tqdm.contrib.concurrent import thread_map
 
 def Mag(bango):
     #print(bango)
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+        }
     url = f"https://0mag.net/search?q={bango}"
     try:
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
         if num:
             mags_0mag = fetchMagnet0Mag(response, num=num)
         else:
@@ -106,6 +117,7 @@ with ThreadPoolExecutor() as executor:
             future = executor.submit(Mag, bango)
             future.add_done_callback(lambda p: progress.update())
 '''
+#print(df['bango'])
 #with ThreadPoolExecutor() as executor:
 #    tqdm(executor.map(Mag, df['bango']), total=len(df['bango']))
 thread_map(Mag, df['bango'])
