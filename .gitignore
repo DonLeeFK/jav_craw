@@ -3,3 +3,5 @@ __pycache__
 ./log/.DS_Store
 ./data/.DS_Store
 .venv
+.vscode
+.*
