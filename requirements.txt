@@ -5,3 +5,5 @@ requests
 rich
 tqdm
 pandas
+matplotlib
+wordcloud
